@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Created by https://www.gitignore.io/api/c++,java,linux,macos,gradle,windows,visualstudiocode
 
 ### C++ ###
@@ -35,6 +36,8 @@
 *.app
 
 ### Java ###
+=======
+>>>>>>> 89b30d00102492e88ed8774d7bae4fcd2defa9d8
 # Compiled class file
 *.class
 
@@ -58,6 +61,7 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+<<<<<<< HEAD
 
 ### Linux ###
 *~
@@ -159,3 +163,5 @@ imgui.ini
 
 
 # End of https://www.gitignore.io/api/c++,java,linux,macos,gradle,windows,visualstudiocode
+=======
+>>>>>>> 89b30d00102492e88ed8774d7bae4fcd2defa9d8
