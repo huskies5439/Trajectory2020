@@ -40,7 +40,7 @@ public class RobotContainer {
 
   public Command getAutonomousCommand() {
     var autoVoltageConstraint = new DifferentialDriveVoltageConstraint(new SimpleMotorFeedforward(0.128, 1.83, 0.204),
-        Constants.kinematics, 10);                                                //0.109, 1.87, 0.216
+        Constants.kinematics, 10); // 0.109, 1.87, 0.216
 
     TrajectoryConfig config = new TrajectoryConfig(1, 0.5)// max speed, max acceleration
         // Add kinematics to ensure max speed is actually obeyed
@@ -50,29 +50,23 @@ public class RobotContainer {
 
     Trajectory exampleTrajectory = TrajectoryGenerator.generateTrajectory(
         // Start at the origin facing the +X direction
-        new Pose2d(0, 0, new Rotation2d(0)),
-        List.of(new Translation2d(1, 0)),
+        new Pose2d(0, 0, new Rotation2d(0)), List.of(new Translation2d(1, 0)),
         // End 3 meters straight ahead of where we started, facing forward
         new Pose2d(3, -2, new Rotation2d(-90)),
         // Pass config
         config);
 
-    RamseteCommand ramseteCommand = new RamseteCommand(
-        exampleTrajectory,
-        basePilotable::getPose,
-        new RamseteController(2, 0.7),
-        new SimpleMotorFeedforward(0.166,1.8,0.186),
-        Constants.kinematics,
-        basePilotable::getWheelSpeeds,
-        new PIDController(1, 0, 0),
-        new PIDController(1, 0, 0),//7.8
+    RamseteCommand ramseteCommand = new RamseteCommand(exampleTrajectory, basePilotable::getPose,
+        new RamseteController(2, 0.7), new SimpleMotorFeedforward(0.166, 1.8, 0.186), Constants.kinematics,
+        basePilotable::getWheelSpeeds, new PIDController(1, 0, 0), new PIDController(1, 0, 0), // 7.8
         // RamseteCommand passes volts to the callback
-        basePilotable::tankDriveVolts,
-        basePilotable
-    );//8.92
-    BasePilotable.singletonBasePilotable.resetAll();
-    return ramseteCommand.andThen(() -> basePilotable.tankDriveVolts(0, 0));
-    //return new RunCommand(()-> basePilotable.tankDriveVolts(0.2,0.2));
+        basePilotable::tankDriveVolts, basePilotable);// 8.92
+
+    return ramseteCommand.andThen(() -> {
+      basePilotable.tankDriveVolts(0, 0);
+      BasePilotable.singletonBasePilotable.resetAll();
+    });
+    // return new RunCommand(()-> basePilotable.tankDriveVolts(0.2,0.2));
 
   }
 }

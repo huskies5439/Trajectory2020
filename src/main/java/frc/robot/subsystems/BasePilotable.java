@@ -89,9 +89,9 @@ public class BasePilotable extends SubsystemBase {
   public Pose2d getPose() {
     return odometrie.getPoseMeters();
   }
-  public void resetAll(){
-    if(BasePilotable.singletonBasePilotable instanceof BasePilotable)
-    {
+
+  public void resetAll() {
+    if (BasePilotable.singletonBasePilotable instanceof BasePilotable) {
       BasePilotable.singletonBasePilotable.zeroHeading();
       BasePilotable.singletonBasePilotable.resetEncoders();
     }
@@ -121,6 +121,7 @@ public class BasePilotable extends SubsystemBase {
 
   public void zeroHeading() {
     gyro.setYaw(0);
+    gyro.setFusedHeading(0);
   }
 
   public double getTurnRate() {
