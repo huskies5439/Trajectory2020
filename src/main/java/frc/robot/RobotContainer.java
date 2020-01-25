@@ -42,7 +42,7 @@ public class RobotContainer {
     var autoVoltageConstraint = new DifferentialDriveVoltageConstraint(new SimpleMotorFeedforward(0.128, 1.83, 0.204),
         Constants.kinematics, 10);                                                //0.109, 1.87, 0.216
 
-    TrajectoryConfig config = new TrajectoryConfig(0.5, 0.2)// max speed, max acceleration
+    TrajectoryConfig config = new TrajectoryConfig(1, 0.5)// max speed, max acceleration
         // Add kinematics to ensure max speed is actually obeyed
         .setKinematics(Constants.kinematics)
         // Apply the voltage constraint
@@ -51,10 +51,9 @@ public class RobotContainer {
     Trajectory exampleTrajectory = TrajectoryGenerator.generateTrajectory(
         // Start at the origin facing the +X direction
         new Pose2d(0, 0, new Rotation2d(0)),
-        // Pass through these two interior waypoints, making an 's' curve path
-        List.of(new Translation2d(1, 0.5), new Translation2d(2, -0.5)),
+        List.of(new Translation2d(1, 0)),
         // End 3 meters straight ahead of where we started, facing forward
-        new Pose2d(3, 0, new Rotation2d(0)),
+        new Pose2d(3, -2, new Rotation2d(-90)),
         // Pass config
         config);
 
@@ -62,15 +61,16 @@ public class RobotContainer {
         exampleTrajectory,
         basePilotable::getPose,
         new RamseteController(2, 0.7),
-        new SimpleMotorFeedforward(0.109,1.87,0.216),
+        new SimpleMotorFeedforward(0.166,1.8,0.186),
         Constants.kinematics,
         basePilotable::getWheelSpeeds,
-        new PIDController(8.5, 0, 0),
-        new PIDController(8.5, 0, 0),
+        new PIDController(1, 0, 0),
+        new PIDController(1, 0, 0),//7.8
         // RamseteCommand passes volts to the callback
         basePilotable::tankDriveVolts,
         basePilotable
     );//8.92
+    BasePilotable.singletonBasePilotable.resetAll();
     return ramseteCommand.andThen(() -> basePilotable.tankDriveVolts(0, 0));
     //return new RunCommand(()-> basePilotable.tankDriveVolts(0.2,0.2));
 

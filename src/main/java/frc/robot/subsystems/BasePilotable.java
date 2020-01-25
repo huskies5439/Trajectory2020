@@ -10,6 +10,7 @@ package frc.robot.subsystems;
 import com.ctre.phoenix.sensors.PigeonIMU;
 import com.revrobotics.CANEncoder;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.Encoder;
@@ -24,37 +25,50 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class BasePilotable extends SubsystemBase {
   private CANSparkMax neod1 = new CANSparkMax(24, MotorType.kBrushless);
-    private CANSparkMax neod2 = new CANSparkMax(25, MotorType.kBrushless);
-    private CANSparkMax neog1 = new CANSparkMax(22, MotorType.kBrushless);
-    private CANSparkMax neog2 = new CANSparkMax(23, MotorType.kBrushless);
-   
-    private SpeedControllerGroup neod = new SpeedControllerGroup(neod1, neod2);
-    private SpeedControllerGroup neog = new SpeedControllerGroup(neog1, neog2);
-    private DifferentialDrive drive = new DifferentialDrive(neog, neod);
-   
-    private PigeonIMU gyro = new PigeonIMU(3);
-    private double[] ypr = new double[3];
-    private double[] ypr_dps = new double[3];
-    
-    private CANEncoder encodeurd = neod1.getEncoder();
-    private CANEncoder encodeurg = neog1.getEncoder();
-    
-    private DifferentialDriveOdometry odometrie;
+  private CANSparkMax neod2 = new CANSparkMax(25, MotorType.kBrushless);
+  private CANSparkMax neog1 = new CANSparkMax(22, MotorType.kBrushless);
+  private CANSparkMax neog2 = new CANSparkMax(23, MotorType.kBrushless);
+
+  private SpeedControllerGroup neod = new SpeedControllerGroup(neod1, neod2);
+  private SpeedControllerGroup neog = new SpeedControllerGroup(neog1, neog2);
+  private DifferentialDrive drive = new DifferentialDrive(neog, neod);
+
+  private PigeonIMU gyro = new PigeonIMU(3);
+  private double[] ypr = new double[3];
+  private double[] ypr_dps = new double[3];
+
+  private CANEncoder encodeurd = neod1.getEncoder();
+  private CANEncoder encodeurg = neog1.getEncoder();
+
+  private DifferentialDriveOdometry odometrie;
+
+  public static BasePilotable singletonBasePilotable = null;
 
   public BasePilotable() {
-   encodeurg.setPositionConversionFactor(1/4.67*0.1016*Math.PI);
-   encodeurd.setPositionConversionFactor(1/4.67*0.1016*Math.PI);
-   encodeurg.setVelocityConversionFactor(0.1016*Math.PI/(4.67*60));
-   encodeurd.setVelocityConversionFactor(0.1016*Math.PI/(4.67*60));
-   resetEncoders();
-   odometrie = new DifferentialDriveOdometry(Rotation2d.fromDegrees(angle()));
-   resetGyro();
-   drive.setSafetyEnabled(false);
+    encodeurg.setPositionConversionFactor(1 / 4.67 * 0.1016 * Math.PI);
+    encodeurd.setPositionConversionFactor(1 / 4.67 * 0.1016 * Math.PI);
+    encodeurg.setVelocityConversionFactor(0.1016 * Math.PI / (4.67 * 60));
+    encodeurd.setVelocityConversionFactor(0.1016 * Math.PI / (4.67 * 60));
+    resetEncoders();
+    odometrie = new DifferentialDriveOdometry(Rotation2d.fromDegrees(angle()));
+    resetGyro();
+    drive.setSafetyEnabled(false);
+    neog1.setIdleMode(IdleMode.kBrake);
+    neog2.setIdleMode(IdleMode.kBrake);
+    neod1.setIdleMode(IdleMode.kBrake);
+    neod2.setIdleMode(IdleMode.kBrake);
+    neog1.setOpenLoopRampRate(0);
+    neog2.setOpenLoopRampRate(0);
+    neod1.setOpenLoopRampRate(0);
+    neod2.setOpenLoopRampRate(0);
+
+    singletonBasePilotable = this;
+
   }
 
   @Override
   public void periodic() {
-    odometrie.update(Rotation2d.fromDegrees(angle()),encodeurg.getPosition(), -encodeurd.getPosition());
+    odometrie.update(Rotation2d.fromDegrees(angle()), encodeurg.getPosition(), -encodeurd.getPosition());
     SmartDashboard.putNumber("VelocityG", neog1.getEncoder().getVelocity());
     SmartDashboard.putNumber("VelocityD", -neod1.getEncoder().getVelocity());
     SmartDashboard.putNumber("PositionG", neog1.getEncoder().getPosition());
@@ -64,43 +78,58 @@ public class BasePilotable extends SubsystemBase {
 
   public double angle() {
     gyro.getYawPitchRoll(ypr);
-    return ypr[0]*-1;
+    return ypr[0] * -1;
   }
- 
-  public void resetEncoders(){
+
+  public void resetEncoders() {
     encodeurd.setPosition(0);
     encodeurg.setPosition(0);
   }
+
   public Pose2d getPose() {
     return odometrie.getPoseMeters();
   }
+  public void resetAll(){
+    if(BasePilotable.singletonBasePilotable instanceof BasePilotable)
+    {
+      BasePilotable.singletonBasePilotable.zeroHeading();
+      BasePilotable.singletonBasePilotable.resetEncoders();
+    }
+  }
+
   public DifferentialDriveWheelSpeeds getWheelSpeeds() {
     return new DifferentialDriveWheelSpeeds(encodeurg.getVelocity(), -encodeurd.getVelocity());
   }
+
   public void resetOdometry(Pose2d pose) {
     resetEncoders();
     odometrie.resetPosition(pose, Rotation2d.fromDegrees(angle()));
   }
+
   public void tankDriveVolts(double leftVolts, double rightVolts) {
     neog.setVoltage(leftVolts);
     neod.setVoltage(-rightVolts);
   }
+
   public double getAverageEncoderDistance() {
     return (encodeurg.getPosition() + -encodeurd.getPosition()) / 2.0;
   }
+
   public void setMaxOutput(double maxOutput) {
     drive.setMaxOutput(maxOutput);
   }
+
   public void zeroHeading() {
     gyro.setYaw(0);
   }
+
   public double getTurnRate() {
     gyro.getRawGyro(ypr_dps);
-    
-    return ypr_dps[0]*-1;
+
+    return ypr_dps[0] * -1;
   }
 
-  public void resetGyro(){
+  public void resetGyro() {
     gyro.setYaw(0);
   }
 }
