@@ -42,7 +42,6 @@ public class BasePilotable extends SubsystemBase {
 
   private DifferentialDriveOdometry odometrie;
 
-  public static BasePilotable singletonBasePilotable = null;
 
   public BasePilotable() {
     encodeurg.setPositionConversionFactor(1 / 4.67 * 0.1016 * Math.PI);
@@ -62,18 +61,30 @@ public class BasePilotable extends SubsystemBase {
     neod1.setOpenLoopRampRate(0);
     neod2.setOpenLoopRampRate(0);
 
-    singletonBasePilotable = this;
 
   }
 
   @Override
   public void periodic() {
     odometrie.update(Rotation2d.fromDegrees(angle()), encodeurg.getPosition(), -encodeurd.getPosition());
+    SmartDashboard.putNumberArray("odometrie", getOdometry());
     SmartDashboard.putNumber("VelocityG", neog1.getEncoder().getVelocity());
     SmartDashboard.putNumber("VelocityD", -neod1.getEncoder().getVelocity());
     SmartDashboard.putNumber("PositionG", neog1.getEncoder().getPosition());
     SmartDashboard.putNumber("PositionD", -neod1.getEncoder().getPosition());
     SmartDashboard.putNumber("Angle", angle());
+  }
+
+  public double[] getOdometry(){
+    double[] position = new double[3];
+    double x = getPose().getTranslation().getX();
+    double y = getPose().getTranslation().getY();
+    double theta = getPose().getRotation().getDegrees();
+    position[0] = x;
+    position[1] = y;
+    position[2] = theta;
+    return position;
+
   }
 
   public double angle() {
@@ -90,12 +101,6 @@ public class BasePilotable extends SubsystemBase {
     return odometrie.getPoseMeters();
   }
 
-  public void resetAll() {
-    if (BasePilotable.singletonBasePilotable instanceof BasePilotable) {
-      BasePilotable.singletonBasePilotable.zeroHeading();
-      BasePilotable.singletonBasePilotable.resetEncoders();
-    }
-  }
 
   public DifferentialDriveWheelSpeeds getWheelSpeeds() {
     return new DifferentialDriveWheelSpeeds(encodeurg.getVelocity(), -encodeurd.getVelocity());
@@ -103,6 +108,7 @@ public class BasePilotable extends SubsystemBase {
 
   public void resetOdometry(Pose2d pose) {
     resetEncoders();
+    zeroHeading();
     odometrie.resetPosition(pose, Rotation2d.fromDegrees(angle()));
   }
 

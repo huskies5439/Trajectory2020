@@ -62,10 +62,8 @@ public class RobotContainer {
         // RamseteCommand passes volts to the callback
         basePilotable::tankDriveVolts, basePilotable);// 8.92
 
-    return ramseteCommand.andThen(() -> {
-      basePilotable.tankDriveVolts(0, 0);
-      BasePilotable.singletonBasePilotable.resetAll();
-    });
+    return ramseteCommand.andThen(() -> 
+      basePilotable.tankDriveVolts(0, 0)).beforeStarting(()-> basePilotable.resetOdometry(new Pose2d()));
     // return new RunCommand(()-> basePilotable.tankDriveVolts(0.2,0.2));
 
   }
