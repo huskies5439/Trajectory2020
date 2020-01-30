@@ -21,5 +21,5 @@ import edu.wpi.first.wpilibj.kinematics.DifferentialDriveKinematics;
  */
 public final class Constants {
     public static final DifferentialDriveKinematics kinematics =
-        new DifferentialDriveKinematics(0.4911134113732004);
+        new DifferentialDriveKinematics(0.4911);
 }
