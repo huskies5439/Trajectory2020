@@ -52,34 +52,52 @@ public class RobotContainer {
         // Apply the voltage constraint
         .addConstraint(autoVoltageConstraint);
     
-    String trajectoryJSON = "output/S.wpilib.json";
+    String trajectoryJSON = "output/test.wpilib.json";
     try
     {
-    //Fait un S si il trouve sont path
-     var path = Filesystem.getDeployDirectory().toPath().resolve(trajectoryJSON));
+    //Fait un S si il trouve son path
+     var path = Filesystem.getDeployDirectory().toPath().resolve(trajectoryJSON);
+     DriverStation.reportWarning("Path : " + path,false);
      exampleTrajectory = TrajectoryUtil.fromPathweaverJson(path);
+     var transform = basePilotable.getPose().minus(exampleTrajectory.getInitialPose());
+     exampleTrajectory= exampleTrajectory.transformBy(transform);
+     
     } 
     catch (IOException e)
     {
-      //Fait l'arc de cercle si il ne trouve pas le ficher JSON
-      exampleTrajectory = TrajectoryGenerator.generateTrajectory(
-        // Start at the origin facing the +X direction
-        new Pose2d(0, 0, new Rotation2d(0)), List.of(new Translation2d(1, 0)),
-        // End 3 meters straight ahead of where we started, facing forward
-        new Pose2d(3, -2, new Rotation2d(-90)),
-        // Pass config
-        config);
+      // An example trajectory to follow.  All units in meters.
+     exampleTrajectory = TrajectoryGenerator.generateTrajectory(
+      // Start at the origin facing the +X direction
+      new Pose2d(0, 0, new Rotation2d(0)),
+      // Pass through these two interior waypoints, making an 's' curve path
+      List.of(
+          new Translation2d(1, 1),
+          new Translation2d(2, -1)
+      ),
+      // End 3 meters straight ahead of where we started, facing forward
+      new Pose2d(3, 0, new Rotation2d(0)),
+      // Pass config
+      config
+  );
         DriverStation.reportError("Unable to open trajectory : " + trajectoryJSON, e.getStackTrace());
     }
     
+
+    
+
     RamseteCommand ramseteCommand = new RamseteCommand(exampleTrajectory, basePilotable::getPose,
-        new RamseteController(2, 0.7), new SimpleMotorFeedforward(0.166, 1.8, 0.186), Constants.kinematics,
-        basePilotable::getWheelSpeeds, new PIDController(1, 0, 0), new PIDController(1, 0, 0), // 7.8
+        new RamseteController(2, 0.7), 
+        new SimpleMotorFeedforward(0.166, 1.8, 0.186), 
+        Constants.kinematics,
+        basePilotable::getWheelSpeeds, 
+        new PIDController(1, 0, 0), 
+        new PIDController(1, 0, 0), // 7.8
         // RamseteCommand passes volts to the callback
         basePilotable::tankDriveVolts, basePilotable);// 8.92
 
     return ramseteCommand.andThen(() -> 
-      basePilotable.tankDriveVolts(0, 0)).beforeStarting(()-> basePilotable.resetOdometry(new Pose2d()));
+      basePilotable.tankDriveVolts(0, 0));
+      //.beforeStarting(()-> basePilotable.resetOdometry(new Pose2d()));
     // return new RunCommand(()-> basePilotable.tankDriveVolts(0.2,0.2));
 
   }

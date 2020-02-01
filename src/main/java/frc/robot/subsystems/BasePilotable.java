@@ -89,7 +89,7 @@ public class BasePilotable extends SubsystemBase {
 
   public double angle() {
     gyro.getYawPitchRoll(ypr);
-    return ypr[0] * -1;
+    return ypr[0]*-1;
   }
 
   public void resetEncoders() {
@@ -133,7 +133,7 @@ public class BasePilotable extends SubsystemBase {
   public double getTurnRate() {
     gyro.getRawGyro(ypr_dps);
 
-    return ypr_dps[0] * -1;
+    return ypr_dps[0]*-1;
   }
 
   public void resetGyro() {
